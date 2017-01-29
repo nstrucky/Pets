@@ -151,11 +151,24 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_NAME_GENDER, mGender);
         values.put(PetEntry.COLUMN_NAME_WEIGHT, petWeight);
 
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        try {
+            Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        long newRowId = ContentUris.parseId(newUri);
+            if (newUri == null) {
+                Toast.makeText(this, "Insertion failed...", Toast.LENGTH_SHORT).show();
+            } else {
+                long newRowId = ContentUris.parseId(newUri);
+                Toast.makeText(this, "New pet saved with ID: "+newRowId, Toast.LENGTH_SHORT).show();
+            }
 
-        Toast.makeText(this, "New pet saved with ID: "+newRowId, Toast.LENGTH_SHORT).show();
+        } catch (IllegalArgumentException e) {
+            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
+        }
+
+
+
+
+
 
     }
 }

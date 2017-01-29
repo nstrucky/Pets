@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 import com.example.android.pets.data.PetDbHelper;
@@ -87,9 +89,12 @@ public class CatalogActivity extends AppCompatActivity {
 
         values.put(PetEntry.COLUMN_NAME_WEIGHT, 35);
 
-        long newRowID =  db.insert(PetEntry.TABLE_NAME, null, values);
+//        long newRowID =  db.insert(PetEntry.TABLE_NAME, null, values);
 
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
+        long newRowId = ContentUris.parseId(uri);
+        Toast.makeText(this, "Dummy inserted with id " + newRowId, Toast.LENGTH_SHORT).show();
     }
 
 

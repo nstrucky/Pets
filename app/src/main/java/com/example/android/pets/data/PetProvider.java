@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
+
 import com.example.android.pets.data.PetContract.PetEntry;
 
 /**
@@ -83,32 +85,41 @@ public class PetProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-
-        return insertPet(uri, values);
-    }
-
-
-    private Uri insertPet(Uri uri, ContentValues values) {
-
-        Uri returnedUri = uri;
-        long newRowId;
-        SQLiteDatabase database = mDbHelper.getWritableDatabase();
-
         int match = sUriMatcher.match(uri);
 
         switch (match) {
 
             case PETS:
-                newRowId = database.insert(PetEntry.TABLE_NAME, null, values);
-                returnedUri = ContentUris.withAppendedId(uri, newRowId);
-                break;
+                return insertPet(uri, values);
 
             default:
                 throw new IllegalArgumentException("Cannot insert into Uri "+ uri);
 
         }
+    }
 
-        return returnedUri;
+    private Uri insertPet(Uri uri, ContentValues values) {
+
+        if (values.getAsString(PetEntry.COLUMN_NAME_NAME) == null ||
+                values.getAsString(PetEntry.COLUMN_NAME_BREED) == null) {
+            throw new IllegalArgumentException("Not all fields contain values...");
+        }
+
+        if (values.getAsInteger(PetEntry.COLUMN_NAME_GENDER) < 1 ||
+                values.getAsInteger(PetEntry.COLUMN_NAME_WEIGHT) < 1) {
+            throw new IllegalArgumentException("Integer values must be greater than 1...");
+        }
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+        long newRowId = database.insert(PetEntry.TABLE_NAME, null, values);
+
+        if (newRowId == -1) {
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+
+        }
+
+        return ContentUris.withAppendedId(uri, newRowId);
 
     }
 
