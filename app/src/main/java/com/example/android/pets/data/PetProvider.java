@@ -100,14 +100,21 @@ public class PetProvider extends ContentProvider {
 
     private Uri insertPet(Uri uri, ContentValues values) {
 
-        if (values.getAsString(PetEntry.COLUMN_NAME_NAME) == null ||
-                values.getAsString(PetEntry.COLUMN_NAME_BREED) == null) {
-            throw new IllegalArgumentException("Not all fields contain values...");
+        String name = values.getAsString(PetEntry.COLUMN_NAME_NAME);
+        if (name == null) {
+            throw new IllegalArgumentException("Pet requires a name");
         }
 
-        if (values.getAsInteger(PetEntry.COLUMN_NAME_GENDER) < 1 ||
-                values.getAsInteger(PetEntry.COLUMN_NAME_WEIGHT) < 1) {
-            throw new IllegalArgumentException("Integer values must be greater than 1...");
+        // Check that the gender is valid
+        Integer gender = values.getAsInteger(PetEntry.COLUMN_NAME_GENDER);
+        if (gender == null || !PetEntry.isValidGender(gender)) {
+            throw new IllegalArgumentException("Pet requires valid gender");
+        }
+
+        // If the weight is provided, check that it's greater than or equal to 0 kg
+        Integer weight = values.getAsInteger(PetEntry.COLUMN_NAME_WEIGHT);
+        if (weight != null && weight < 0) {
+            throw new IllegalArgumentException("Pet requires valid weight");
         }
 
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
