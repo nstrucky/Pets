@@ -15,6 +15,7 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -111,20 +112,7 @@ public class CatalogActivity extends AppCompatActivity {
 
 
 
-
-
-
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-//        PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = helper.getReadableDatabase();
-
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-//        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
 
         String[] projection = {
                 PetEntry._ID,
@@ -134,14 +122,10 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_NAME_WEIGHT
         };
 
-        Cursor cursor = db.query(PetEntry.TABLE_NAME,
-                                 projection,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null
-        );
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
+
+//        Cursor cursor = getContentResolver().query(ContentUris.withAppendedId(PetEntry.CONTENT_URI, 23),
+//                projection, null, null, null);
 
         int idIndex = cursor.getColumnIndex(PetEntry._ID);
         int nameIndex = cursor.getColumnIndex(PetEntry.COLUMN_NAME_NAME);
@@ -159,20 +143,14 @@ public class CatalogActivity extends AppCompatActivity {
             int gender = cursor.getInt(genderIndex);
             int weight = cursor.getInt(weightIndex);
 
-
             builder.append(String.format("%d - %s - %s - %d - %d%n", id, name, breed, gender, weight));
 
-
         }
-
-
 
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-
-
 
             displayView.setText("Number of rows in pets database table: " + cursor.getCount() + "\n");
             displayView.append(builder.toString());
