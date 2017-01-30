@@ -132,11 +132,81 @@ public class PetProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+
+            case PETS:
+                return updatePet(uri, values, selection, selectionArgs);
+
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri)) };
+                return updatePet(uri, values, selection, selectionArgs);
+
+            default:
+                throw new IllegalArgumentException("Update is not supported for Uri " + uri);
+        }
     }
+
+
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+
+
+        if (values.containsKey(PetEntry.COLUMN_NAME_NAME)) {
+            String name = values.getAsString(PetEntry.COLUMN_NAME_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Pet requires a name");
+            }
+        }
+
+        if (values.containsKey(PetEntry.COLUMN_NAME_GENDER)) {
+            Integer gender = values.getAsInteger(PetEntry.COLUMN_NAME_GENDER);
+            if (gender == null || !PetEntry.isValidGender(gender)) {
+                throw new IllegalArgumentException("Pet requires valid gender");
+            }
+        }
+
+        if (values.containsKey(PetEntry.COLUMN_NAME_WEIGHT)) {
+            // Check that the weight is greater than or equal to 0 kg
+            Integer weight = values.getAsInteger(PetEntry.COLUMN_NAME_WEIGHT);
+            if (weight != null && weight < 0) {
+                throw new IllegalArgumentException("Pet requires valid weight");
+            }
+        }
+
+        if (values.size() == 0) {
+            return 0;
+        }
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        return database.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
+    }
+
+
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        final int match = sUriMatcher.match(uri);
+
+        switch (match) {
+
+            case PETS:
+                return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+
+            default:
+                throw new IllegalArgumentException("Deletion is not supported for " + uri);
+        }
+
     }
 }
