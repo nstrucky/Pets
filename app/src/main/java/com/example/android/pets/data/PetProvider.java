@@ -26,7 +26,6 @@ public class PetProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-
         sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS, PETS);
         sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS + "/#", PET_ID);
 
@@ -37,7 +36,20 @@ public class PetProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(Uri uri) {
-        return null;
+
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+
+            case PETS:
+                return PetEntry.CONTENT_LIST_TYPE;
+
+            case PET_ID:
+                return PetEntry.CONTENT_ITEM_TYPE;
+
+            default:
+                throw new IllegalStateException("Unknown URI " + uri + "with match " + match);
+        }
     }
 
     @Override
