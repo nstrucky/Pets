@@ -15,9 +15,12 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -37,17 +40,17 @@ import com.example.android.pets.data.PetDbHelper;
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
 
 
-    private PetDbHelper mPetDbHelper;
     private ListView mPetListView;
+    PetCursorAdapter cursorAdapter;
 
 
     @Override
     protected void onStart() {
-        displayDatabaseInfo();
+        getLoaderManager().initLoader(1, null, this);
         super.onStart();
     }
 
@@ -57,8 +60,11 @@ public class CatalogActivity extends AppCompatActivity {
         setContentView(R.layout.activity_catalog);
 
 
+        cursorAdapter = new PetCursorAdapter(this, null);
         mPetListView = (ListView) findViewById(R.id.listView_pets);
-        mPetDbHelper = new PetDbHelper(this);
+
+        View emptyView = findViewById(R.id.empty_view);
+        mPetListView.setEmptyView(emptyView);
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -70,7 +76,9 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        displayDatabaseInfo();
+        getLoaderManager().initLoader(1, null, this);
+        mPetListView.setAdapter(cursorAdapter);
+
     }
 
     @Override
@@ -83,16 +91,12 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void insertPet() {
 
-        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_NAME_NAME, "Jackson");
         values.put(PetEntry.COLUMN_NAME_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_NAME_BREED, "Terrier");
 
         values.put(PetEntry.COLUMN_NAME_WEIGHT, 35);
-
-//        long newRowID =  db.insert(PetEntry.TABLE_NAME, null, values);
 
         Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
@@ -122,19 +126,41 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void displayDatabaseInfo() {
 
+
+    }
+
+
+
+
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
         String[] projection = {
                 PetEntry._ID,
                 PetEntry.COLUMN_NAME_NAME,
-                PetEntry.COLUMN_NAME_BREED,
-                PetEntry.COLUMN_NAME_GENDER,
-                PetEntry.COLUMN_NAME_WEIGHT
+                PetEntry.COLUMN_NAME_BREED
         };
 
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
-        PetCursorAdapter cursorAdapter = new PetCursorAdapter(this, cursor);
-        mPetListView.setAdapter(cursorAdapter);
+       return new CursorLoader(this,
+                         PetEntry.CONTENT_URI,
+                         projection,
+                         null,
+                         null,
+                         null);
 
-//        cursor.close();
+    }
+
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        cursorAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        cursorAdapter.swapCursor(null);
 
     }
 }
