@@ -129,6 +129,7 @@ public class PetProvider extends ContentProvider {
             throw new IllegalArgumentException("Pet requires valid weight");
         }
 
+
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         long newRowId = database.insert(PetEntry.TABLE_NAME, null, values);
 
