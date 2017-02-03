@@ -29,9 +29,6 @@ public class PetCursorAdapter extends CursorAdapter {
 
     }
 
-
-
-
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
 

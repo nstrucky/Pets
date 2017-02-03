@@ -22,7 +22,6 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -30,12 +29,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -44,13 +42,14 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
 
 
+    private static final int PET_LOADER = 0;
     private ListView mPetListView;
     PetCursorAdapter cursorAdapter;
 
 
     @Override
     protected void onStart() {
-        getLoaderManager().initLoader(1, null, this);
+//        getLoaderManager().initLoader(1, null, this);
         super.onStart();
     }
 
@@ -60,11 +59,30 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         setContentView(R.layout.activity_catalog);
 
 
+
+
+
         cursorAdapter = new PetCursorAdapter(this, null);
         mPetListView = (ListView) findViewById(R.id.listView_pets);
 
         View emptyView = findViewById(R.id.empty_view);
         mPetListView.setEmptyView(emptyView);
+
+        getLoaderManager().initLoader(PET_LOADER, null, this);
+        mPetListView.setAdapter(cursorAdapter);
+
+        mPetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Uri uri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+                intent.setData(uri);
+                startActivity(intent);
+            }
+        });
+
+
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -76,8 +94,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             }
         });
 
-        getLoaderManager().initLoader(1, null, this);
-        mPetListView.setAdapter(cursorAdapter);
+
 
     }
 
@@ -109,13 +126,12 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
-            // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertPet();
-                displayDatabaseInfo();
                 return true;
-            // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
+
+
                 // Do nothing for now
                 return true;
         }
@@ -124,26 +140,19 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
 
 
-    private void displayDatabaseInfo() {
-
-
-    }
-
-
-
-
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
+        //Specifies columns to be retrieved from table
         String[] projection = {
                 PetEntry._ID,
                 PetEntry.COLUMN_NAME_NAME,
                 PetEntry.COLUMN_NAME_BREED
         };
 
-       return new CursorLoader(this,
-                         PetEntry.CONTENT_URI,
+       return new CursorLoader(getApplicationContext(),//need this so the appropriate ContentResolver and ContentProvider methods are called
+                                                        //aka the PetProvider query method in this case.
+                         PetEntry.CONTENT_URI, //actually gets passed to the query method's Uri parameter
                          projection,
                          null,
                          null,
@@ -153,9 +162,10 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
 
-        cursorAdapter.swapCursor(data);
+        //newCursor is from the PetProvider's query method
+        cursorAdapter.swapCursor(newCursor);
     }
 
     @Override
