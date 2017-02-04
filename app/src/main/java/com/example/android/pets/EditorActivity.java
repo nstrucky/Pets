@@ -383,8 +383,16 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private void deletePet() {
 
-        getContentResolver().delete(mPetUri, null, null);
-        Toast.makeText(this, "OMG PET DELETED!", Toast.LENGTH_SHORT).show();
+        if (mPetUri != null) {
+            int rowsDeleted = getContentResolver().delete(mPetUri, null, null);
+
+            if (rowsDeleted == 0) {
+                Toast.makeText(this, "Error deleting pet...", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "OMG PET DELETED!", Toast.LENGTH_SHORT).show();
+            }
+        }
+
         finish();
     }
 

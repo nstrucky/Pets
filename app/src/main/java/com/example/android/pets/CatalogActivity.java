@@ -126,9 +126,8 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 insertPet();
                 return true;
             case R.id.action_delete_all_entries:
+                deleteAllPets();
 
-
-                // Do nothing for now
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -169,4 +168,20 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         cursorAdapter.swapCursor(null);
 
     }
+
+
+
+    private void deleteAllPets() {
+
+        int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
+
+        if (rowsDeleted != 0) {
+            Toast.makeText(this, "" + rowsDeleted + " rows deleted.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Error deleting pets.", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+
 }
