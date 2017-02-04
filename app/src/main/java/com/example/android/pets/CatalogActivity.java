@@ -58,10 +58,6 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog);
 
-
-
-
-
         cursorAdapter = new PetCursorAdapter(this, null);
         mPetListView = (ListView) findViewById(R.id.listView_pets);
 
